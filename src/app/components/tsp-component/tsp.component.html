@@ -1,0 +1,22 @@
+<div class="tsp-form-container">
+  <h2>Caixeiro Viajante - Parâmetros</h2>
+
+  <form [formGroup]="tspForm" (ngSubmit)="sendForm()">
+    <div formArrayName="cities" *ngFor="let city of cities.controls; let i=index">
+      <div [formGroupName]="i" class="city-row">
+        <input formControlName="name" placeholder="Nome da Cidade" required />
+        <input formControlName="latitude" type="number" placeholder="Latitude" required />
+        <input formControlName="longitude" type="number" placeholder="Longitude" required />
+        <button type="button" (click)="removeCity(i)" *ngIf="cities.length > 1">Remover</button>
+      </div>
+    </div>
+
+    <button type="button" (click)="addCity()">Adicionar Cidade</button>
+    <button type="submit" [disabled]="!tspForm.valid">Enviar</button>
+  </form>
+
+  <div *ngIf="routeResult">
+    <h3>Rota Calculada:</h3>
+    <pre>{{ routeResult | json }}</pre>
+  </div>
+</div>
