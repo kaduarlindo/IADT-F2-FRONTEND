@@ -1,6 +1,6 @@
 # TechChallenge - Fase2
 
-📌 README – Projeto TSP (Caixeiro Viajante)
+📌 README – Projeto IADT-FASE 2
 
 Este projeto implementa uma aplicação web para resolver o Problema do Caixeiro Viajante (TSP).
 O sistema é composto por dois serviços:
@@ -50,21 +50,19 @@ Não é necessário instalar Node.js ou Python localmente, tudo roda em containe
 
 ▶️ Como executar o projeto
 1. Clonar o repositório
-git clone https://github.com/seu-usuario/tsp-project.git
-cd tsp-project
+git clone https://github.com/kaduarlindo/IADT-F2-FRONTEND.git
+cd IADT-F2-FRONTEND
 
 2. Construir e subir os containers
 docker compose up --build
 
 3. Acessar a aplicação
 
-Frontend Angular (mapa) → http://localhost:8080
-
-Backend FastAPI (docs Swagger) → http://localhost:8000/docs
+Frontend Angular (mapa) → http://localhost:4200
 
 🔄 Fluxo de execução
 
-O usuário abre o frontend Angular em http://localhost:8080.
+O usuário abre o frontend Angular em http://localhost:4200.
 
 Insere cidades/pontos no formulário.
 
@@ -97,13 +95,3 @@ Dependências são instaladas de forma isolada no container.
 Backend roda com Uvicorn (produção-ready).
 
 Frontend servido com Nginx otimizado para SPA.
-
-📌 Próximos passos / melhorias
-
-Substituir solver heurístico por OR-Tools (solução exata).
-
-Persistir cidades em banco (PostgreSQL).
-
-Implementar autenticação de usuários.
-
-Deploy em AWS ECS / App Runner / Kubernetes.
