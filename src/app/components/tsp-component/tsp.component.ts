@@ -70,8 +70,8 @@ export class TspComponent {
       this.wsSubscription = this.wsService.routeResult$.subscribe(result => {
         console.log('Resposta WS:', result);
         this.routeResult = JSON.parse(result);
+        this.spinnerVisible = false;
       });
-      this.spinnerVisible = false;
     }
   }
 
