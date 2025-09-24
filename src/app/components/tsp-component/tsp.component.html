@@ -1,22 +1,33 @@
 <div class="tsp-form-container">
-  <h2>Caixeiro Viajante - Parâmetros</h2>
+  <h2>Parâmetros</h2>
 
   <form [formGroup]="tspForm" (ngSubmit)="sendForm()">
     <div formArrayName="cities" *ngFor="let city of cities.controls; let i=index">
       <div [formGroupName]="i" class="city-row">
-        <input formControlName="name" placeholder="Nome da Cidade" required />
-        <input formControlName="latitude" type="number" placeholder="Latitude" required />
-        <input formControlName="longitude" type="number" placeholder="Longitude" required />
+
+        <input formControlName="x" type="number" placeholder="Latitude" required />
+        <input formControlName="y" type="number" placeholder="Longitude" required />
+        <label class="clean-checkbox">
+          <input formControlName="priority" type="checkbox"/>
+          <span class="checkmark"></span>
+            Prioritário
+        </label>
+        <input formControlName="demand" type="number" placeholder="Quantidade" required />
         <button type="button" (click)="removeCity(i)" *ngIf="cities.length > 1">Remover</button>
       </div>
     </div>
 
     <button type="button" (click)="addCity()">Adicionar Cidade</button>
     <button type="submit" [disabled]="!tspForm.valid">Enviar</button>
+    <!-- Spinner (só aparece enquanto loading=true) -->
+    <div *ngIf="spinnerVisible" class="spinner-container">
+      <mat-progress-spinner mode="indeterminate" diameter="40" color="primary"></mat-progress-spinner>
+      <p>Aguardando resposta...</p>
+    </div>
   </form>
-
-  <div *ngIf="routeResult">
-    <h3>Rota Calculada:</h3>
-    <pre>{{ routeResult | json }}</pre>
-  </div>
+  <app-tsp-graph
+    *ngIf="routeResult && !spinnerVisible"
+    [cities]="routeResult.cities"
+    [itineraries]="routeResult.itineraries">
+  </app-tsp-graph>
 </div>

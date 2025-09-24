@@ -1,7 +1,7 @@
 export interface City {
   identifier: number;
   priority: string;
-  x: number;
-  y: number;
+  x: string;
+  y: string;
   demand: number;
 }

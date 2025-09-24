@@ -1,28 +1,31 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, FormArray, ReactiveFormsModule } from '@angular/forms';
 import { TspWebsocketService } from '../../services/tsp-websocket';
 import { Subscription } from 'rxjs';
-import { CommonModule, JsonPipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
+import { City } from '../../models/city';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { TspGraphComponent } from '../tsp-graph/tsp-graph';
+import { SharedRoute } from '../../services/shared-route';
 
 @Component({
   selector: 'app-tsp-component',
-  imports: [JsonPipe, CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, MatProgressSpinnerModule, TspGraphComponent],
   templateUrl: './tsp.component.html',
-  styleUrl: './tsp.component.css'
+  styleUrls: ['./tsp.component.css'],
+  standalone: true
 })
 export class TspComponent {
-
-   tspForm!: FormGroup;
+  tspForm!: FormGroup;
   routeResult: any = null;
   wsSubscription!: Subscription;
+  spinnerVisible = false;
 
-  constructor(private fb: FormBuilder, private wsService: TspWebsocketService) {}
+  constructor(private fb: FormBuilder, private wsService: TspWebsocketService, private sharedRoute: SharedRoute) {}
 
   ngOnInit(): void {
     this.tspForm = this.fb.group({
-      cities: this.fb.array([
-        this.createCity()
-      ])
+      cities: this.fb.array([ this.createCity() ])
     });
   }
 
@@ -32,9 +35,10 @@ export class TspComponent {
 
   createCity() {
     return this.fb.group({
-      name: ['', Validators.required],
-      latitude: ['', Validators.required],
-      longitude: ['', Validators.required]
+      x: ['', Validators.required],
+      y: ['', Validators.required],
+      priority: [false, Validators.required],
+      demand: ['', Validators.required]
     });
   }
 
@@ -48,14 +52,26 @@ export class TspComponent {
 
   sendForm() {
     if (this.tspForm.valid) {
-      // Envia os dados via WebSocket
-      this.wsService.sendCities(this.tspForm.value.cities);
-      
-      // Se inscreve para receber resposta
+      this.spinnerVisible = true;
+
+      const citiesData = this.tspForm.value.cities.map(
+        (city: City, index: number) => ({
+          identifier: index,
+          x: city.x,
+          y: city.y,
+          priority: city.priority ? 1 : 0,
+          demand: Number(city.demand)
+        })
+      );
+
+      const payload = { command: 'start', cities: citiesData };
+      this.wsService.sendMessage(JSON.stringify(payload));
+
       this.wsSubscription = this.wsService.routeResult$.subscribe(result => {
-        this.routeResult = result;
-        console.log('Rota recebida:', result);
+        console.log('Resposta WS:', result);
+        this.routeResult = JSON.parse(result);
       });
+      this.spinnerVisible = false;
     }
   }
 

@@ -1,100 +1,74 @@
-import { Component, OnInit, OnDestroy, AfterViewInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, FormArray, ReactiveFormsModule } from '@angular/forms';
-import { TspWebsocketService } from '../../services/tsp-websocket'; 
-import { Subscription } from 'rxjs';
+import { Component, Input, OnChanges, SimpleChanges, AfterViewInit } from '@angular/core';
 import * as L from 'leaflet';
 import { CommonModule } from '@angular/common';
-import { isPlatformBrowser } from '@angular/common';
-import { Inject, PLATFORM_ID } from '@angular/core';
 
 @Component({
-  selector: 'app-tsp-map.component',
-  imports: [ReactiveFormsModule, CommonModule],
+  selector: 'app-tsp-map',
+  standalone: true,
+  imports: [CommonModule],
   templateUrl: './tsp-map.component.html',
   styleUrl: './tsp-map.component.css'
 })
-export class TspMapComponent {
+export class TspMapComponent implements AfterViewInit, OnChanges {
+  @Input() routeResult: any;
 
-tspForm!: FormGroup;
-  wsSubscription!: Subscription;
-  map: any;
-  markers: any[] = [];
-  routeLine: any;
-  isBrowser: boolean = false;
+  private map!: L.Map;
+  private markersLayer = L.layerGroup();
 
-  constructor(@Inject(PLATFORM_ID) private platformId: Object, private fb: FormBuilder, private wsService: TspWebsocketService) {}
-
-  ngOnInit(): void {
-    this.tspForm = this.fb.group({
-      cities: this.fb.array([this.createCity()])
-    });
-  }
-
-  async ngAfterViewInit(): Promise<void> {
-     if (this.isBrowser) {
-      const L = await import('leaflet');
-
-      this.map = L.map('map', { center: [0, 0], zoom: 2 });
-
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors'
-      }).addTo(this.map);
+  ngAfterViewInit(): void {
+    this.initMap();
+    if (this.routeResult) {
+      this.renderRoute();
     }
   }
 
-  get cities(): FormArray { return this.tspForm.get('cities') as FormArray; }
-
-  createCity() {
-    return this.fb.group({
-      name: ['', Validators.required],
-      latitude: ['', Validators.required],
-      longitude: ['', Validators.required]
-    });
-  }
-
-  addCity() { this.cities.push(this.createCity()); }
-  removeCity(index: number) { this.cities.removeAt(index); }
-
-  sendForm(): void {
-    if (this.tspForm.valid) {
-      this.clearMap();
-      this.wsService.sendCities(this.tspForm.value.cities);
-      this.wsSubscription = this.wsService.routeResult$.subscribe(route => {
-        this.renderRoute(route);
-      });
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['routeResult'] && this.map) {
+      this.renderRoute();
     }
   }
 
-  async renderRoute(route: any): Promise<void> {
-    const L = await import('leaflet');
-    const latlngs: [number, number][] = [];
-
-    route.order.forEach((city: string) => {
-      const cityData = this.cities.controls.find(c => c.value.name === city)?.value;
-      if (cityData) {
-        const latlng: [number, number] = [
-          Number(cityData.latitude),
-          Number(cityData.longitude)
-        ];
-        latlngs.push(latlng);
-        const marker = L.marker(latlng).addTo(this.map).bindPopup(city);
-        this.markers.push(marker);
-      }
+  private initMap(): void {
+    this.map = L.map('map', {
+      center: [0, 0], // posição inicial
+      zoom: 2
     });
 
-    this.routeLine = L.polyline(latlngs, { color: 'blue', weight: 4 }).addTo(this.map);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(this.map);
 
-    const group = L.featureGroup([...this.markers]);
-    this.map.fitBounds(group.getBounds().pad(0.5));
+    this.markersLayer.addTo(this.map);
   }
 
-  clearMap(): void {
-    this.markers.forEach(m => this.map.removeLayer(m));
-    this.markers = [];
-    if (this.routeLine) this.map.removeLayer(this.routeLine);
-  }
+  private renderRoute(): void {
+    this.markersLayer.clearLayers();
 
-  ngOnDestroy(): void {
-    if (this.wsSubscription) this.wsSubscription.unsubscribe();
+    if (!this.routeResult || !this.routeResult.solution) {
+      return;
+    }
+
+    // supondo que solution é um array [{x: number, y: number}, ...]
+    const cities = this.routeResult.solution;
+
+    const latlngs: L.LatLngExpression[] = [];
+
+    cities.forEach((city: any, index: number) => {
+      const lat = city.y;
+      const lng = city.x;
+
+      const marker = L.marker([lat, lng]).bindPopup(`Cidade ${index}`);
+      this.markersLayer.addLayer(marker);
+
+      latlngs.push([lat, lng]);
+    });
+
+    if (latlngs.length > 1) {
+      const polyline = L.polyline(latlngs, { color: 'blue' });
+      this.markersLayer.addLayer(polyline);
+
+      // ajusta o mapa para mostrar todos os pontos
+      this.map.fitBounds(polyline.getBounds());
+    }
   }
 }

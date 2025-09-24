@@ -41,7 +41,7 @@ h2 {
 
 /* Botões */
 button {
-  padding: 10px 20px;
+  padding: 10px 20px 10px 20px;
   border: none;
   border-radius: 8px;
   background-color: #3b82f6; /* azul principal */
@@ -86,4 +86,59 @@ button[type="button"]:hover {
   button {
     width: 100%;
   }
+}
+
+.clean-checkbox {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-size: 14px;
+  color: #333; /* texto discreto */
+  user-select: none;
+}
+
+.clean-checkbox input {
+  display: none; /* esconde o checkbox nativo */
+}
+
+.clean-checkbox .checkmark {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #999; /* borda cinza neutra */
+  border-radius: 4px;
+  margin-right: 8px;
+  display: inline-block;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.clean-checkbox input:checked + .checkmark {
+  background-color: #4caf50; /* verde clean */
+  border-color: #4caf50;
+}
+
+.clean-checkbox .checkmark::after {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 0px;
+  width: 5px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  opacity: 0;
+  transform: rotate(45deg);
+  transition: opacity 0.2s ease;
+}
+
+.clean-checkbox input:checked + .checkmark::after {
+  opacity: 1; /* só aparece quando marcado */
+}
+
+.spinner-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 15px;
+  color: #555;
 }
