@@ -25,6 +25,7 @@ export class TspWebsocketService {
     this.ws.onmessage = (msg) => {
       console.log("📩 Mensagem recebida:", msg.data);
       this.sharedRoute.setRouteResult(msg.data);
+      this.routeResultSubject.next(msg.data);
     };
   }
 
