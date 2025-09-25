@@ -1,16 +1,21 @@
 import { Injectable } from '@angular/core';
 import { SharedRoute as SharedRouteService } from './shared-route';
 import { Subject } from 'rxjs';
+import { BestSolutionResponse } from '../models/solution';
+import { TspSolution } from './tsp-solution';
 
 @Injectable({
   providedIn: 'root'
 })
 export class TspWebsocketService {
-   private ws!: WebSocket;
+  private ws!: WebSocket;
   private routeResultSubject = new Subject<any>();
   public routeResult$ = this.routeResultSubject.asObservable();
 
-  constructor(private sharedRoute: SharedRouteService) {}
+  private solutionSubject = new Subject<BestSolutionResponse>();
+  solution$ = this.solutionSubject.asObservable();
+
+  constructor(private tspService: TspSolution) {}
 
   private connectAndSend(message: string) {
     this.ws = new WebSocket("ws://localhost:8000/ws/genetic");
@@ -24,7 +29,7 @@ export class TspWebsocketService {
     this.ws.onclose = (e) => console.warn("⚠️ WebSocket fechado", e);
     this.ws.onmessage = (msg) => {
       console.log("📩 Mensagem recebida:", msg.data);
-      this.sharedRoute.setRouteResult(msg.data);
+      this.tspService.handleResponse(JSON.parse(msg.data));
       this.routeResultSubject.next(msg.data);
     };
   }

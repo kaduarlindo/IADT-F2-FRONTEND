@@ -25,9 +25,11 @@
       <p>Aguardando resposta...</p>
     </div>
   </form>
-  <app-tsp-graph
+  <div class="graph-container">
+    <app-tsp-graph
     *ngIf="routeResult && !spinnerVisible"
-    [cities]="routeResult.cities"
-    [itineraries]="routeResult.itineraries">
+    [cities]="this.citiesResposnse"
+    [itineraries]="this.itinerariesResponse">
   </app-tsp-graph>
+  </div>
 </div>

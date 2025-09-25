@@ -6,7 +6,8 @@ import { CommonModule } from '@angular/common';
 import { City } from '../../models/city';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TspGraphComponent } from '../tsp-graph/tsp-graph';
-import { SharedRoute } from '../../services/shared-route';
+import { TspSolution } from '../../services/tsp-solution';
+import { BestSolutionResponse } from '../../models/solution';
 
 @Component({
   selector: 'app-tsp-component',
@@ -17,11 +18,14 @@ import { SharedRoute } from '../../services/shared-route';
 })
 export class TspComponent {
   tspForm!: FormGroup;
-  routeResult: any = null;
+  routeResult!: BestSolutionResponse;
   wsSubscription!: Subscription;
   spinnerVisible = false;
 
-  constructor(private fb: FormBuilder, private wsService: TspWebsocketService, private sharedRoute: SharedRoute) {}
+  citiesResposnse: City[] = [];
+  itinerariesResponse: number[][] = [];
+
+  constructor(private fb: FormBuilder, private wsService: TspWebsocketService) {}
 
   ngOnInit(): void {
     this.tspForm = this.fb.group({
@@ -68,8 +72,19 @@ export class TspComponent {
       this.wsService.sendMessage(JSON.stringify(payload));
 
       this.wsSubscription = this.wsService.routeResult$.subscribe(result => {
-        console.log('Resposta WS:', result);
         this.routeResult = JSON.parse(result);
+        this.citiesResposnse = this.routeResult.solution.vehicles
+                            .flatMap(v => v.route.coordinates.map(element => ({
+                              identifier: element.id,
+                              x: element.x,
+                              y: element.y
+                            } as City)));
+                              
+        this.itinerariesResponse = this.routeResult.solution.vehicles
+                              .map(v => v.route.customers);
+                              
+        console.log('Cidades:', this.citiesResposnse);
+        console.log('Itinerários:', this.itinerariesResponse);
         this.spinnerVisible = false;
       });
     }

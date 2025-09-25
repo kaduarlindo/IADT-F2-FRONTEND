@@ -142,3 +142,12 @@ button[type="button"]:hover {
   margin-top: 15px;
   color: #555;
 }
+
+.graph-container {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
