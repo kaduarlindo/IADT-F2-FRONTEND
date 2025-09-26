@@ -1,5 +1,6 @@
 import { Component, Input, AfterViewInit, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Route } from '../../models/solution';
 
 @Component({
   selector: 'app-tsp-graph',
@@ -11,7 +12,7 @@ import { CommonModule } from '@angular/common';
 export class TspGraphComponent implements AfterViewInit {
 
   @Input() cities: any[] = [];
-  @Input() itineraries: number[][] = [];
+  @Input() itineraries: Route[] = [];
   @ViewChild('canvas', { static: true }) canvasRef!: ElementRef<HTMLCanvasElement>;
 
   ngAfterViewInit() {
@@ -28,49 +29,85 @@ export class TspGraphComponent implements AfterViewInit {
   drawGraph() {
     const canvas = this.canvasRef?.nativeElement;
     if (!canvas || !this.cities.length) return;
+
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Escala simples para caber no canvas
     const margin = 40;
-    const xs = this.cities.map(c => c.x);
-    const ys = this.cities.map(c => c.y);
-    const minX = Math.min(...xs), maxX = Math.max(...xs);
-    const minY = Math.min(...ys), maxY = Math.max(...ys);
+    const xs = this.cities.map(c => Number(c.x));
+    const ys = this.cities.map(c => Number(c.y));
 
-    function scaleX(x: number) {
-      return margin + ((x - minX) / (maxX - minX || 1)) * (canvas.width - 2 * margin);
-    }
-    function scaleY(y: number) {
-      return canvas.height - margin - ((y - minY) / (maxY - minY || 1)) * (canvas.height - 2 * margin);
-    }
+    const minX = Math.min(...xs);
+    const maxX = Math.max(...xs);
+    const minY = Math.min(...ys);
+    const maxY = Math.max(...ys);
 
-    // Desenha linhas dos itinerários
-    ctx.strokeStyle = '#3b82f6';
-    ctx.lineWidth = 2;
-    this.itineraries.forEach(route => {
+    const scaleX = (x: number) =>
+      margin + ((x - minX) / (maxX - minX)) * (canvas.width - 2 * margin);
+    const scaleY = (y: number) =>
+      margin + ((y - minY) / (maxY - minY)) * (canvas.height - 2 * margin);
+
+    // Guardar posições das cidades para interação
+    const cityPositions: { city: any; x: number; y: number }[] = [];
+
+    // Desenhar cidades
+    ctx.fillStyle = 'red';
+    this.cities.forEach(city => {
+      const x = scaleX(Number(city.x));
+      const y = scaleY(Number(city.y));
+      cityPositions.push({ city, x, y });
+
       ctx.beginPath();
-      route.forEach((idx, i) => {
-        const city = this.cities[idx];
-        if (i === 0) ctx.moveTo(scaleX(city.x), scaleY(city.y));
-        else ctx.lineTo(scaleX(city.x), scaleY(city.y));
+      ctx.arc(x, y, 5, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    // Desenhar rotas
+    ctx.strokeStyle = 'blue';
+    ctx.lineWidth = 2;
+
+    this.itineraries.forEach(route => {
+      if (!route.coordinates.length) return;
+
+      ctx.beginPath();
+      route.coordinates.forEach((point, i) => {
+        const x = scaleX(Number(point.x));
+        const y = scaleY(Number(point.y));
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
       });
       ctx.stroke();
     });
 
-    // Desenha pontos das cidades
-    this.cities.forEach((city, idx) => {
-      ctx.beginPath();
-      ctx.arc(scaleX(city.x), scaleY(city.y), 7, 0, 2 * Math.PI);
-      ctx.fillStyle = '#2563eb';
-      ctx.fill();
-      ctx.strokeStyle = '#fff';
-      ctx.stroke();
-      ctx.fillStyle = '#fff';
-      ctx.font = '12px Segoe UI';
-      ctx.fillText(idx.toString(), scaleX(city.x) - 4, scaleY(city.y) + 4);
-    });
+    // Função para detectar cidade próxima do mouse
+    const getCityAt = (mx: number, my: number) => {
+      return cityPositions.find(
+        p => Math.hypot(p.x - mx, p.y - my) < 7 // raio de clique
+      )?.city;
+    };
+
+    // Evento hover
+    canvas.onmousemove = (e: MouseEvent) => {
+      const rect = canvas.getBoundingClientRect();
+      const mx = e.clientX - rect.left;
+      const my = e.clientY - rect.top;
+      const city = getCityAt(mx, my);
+
+      canvas.style.cursor = city ? 'pointer' : 'default';
+    };
+
+    // Evento click
+    canvas.onclick = (e: MouseEvent) => {
+      const rect = canvas.getBoundingClientRect();
+      const mx = e.clientX - rect.left;
+      const my = e.clientY - rect.top;
+      const city = getCityAt(mx, my);
+
+      if (city) {
+        alert(`Cidade: ${city.name || city.id}`); // você pode personalizar o conteúdo
+      }
+    };
   }
 }

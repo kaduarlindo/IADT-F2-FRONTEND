@@ -6,8 +6,8 @@ import { CommonModule } from '@angular/common';
 import { City } from '../../models/city';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TspGraphComponent } from '../tsp-graph/tsp-graph';
-import { TspSolution } from '../../services/tsp-solution';
 import { BestSolutionResponse } from '../../models/solution';
+import { Route } from '../../models/solution';
 
 @Component({
   selector: 'app-tsp-component',
@@ -23,7 +23,7 @@ export class TspComponent {
   spinnerVisible = false;
 
   citiesResposnse: City[] = [];
-  itinerariesResponse: number[][] = [];
+  itinerariesResponse: Route[] = [];
 
   constructor(private fb: FormBuilder, private wsService: TspWebsocketService) {}
 
@@ -73,15 +73,20 @@ export class TspComponent {
 
       this.wsSubscription = this.wsService.routeResult$.subscribe(result => {
         this.routeResult = JSON.parse(result);
-        this.citiesResposnse = this.routeResult.solution.vehicles
-                            .flatMap(v => v.route.coordinates.map(element => ({
-                              identifier: element.id,
-                              x: element.x,
-                              y: element.y
-                            } as City)));
+        this.citiesResposnse = Array.from(
+                                          new Map(
+                                            this.routeResult.solution.vehicles
+                                              .flatMap(v => v.route.coordinates.map(element => ({
+                                                identifier: element.id,
+                                                x: element.x,
+                                                y: element.y
+                                              } as City)))
+                                              .map(city => [city.identifier, city])
+                                          ).values()
+                                        );
                               
         this.itinerariesResponse = this.routeResult.solution.vehicles
-                              .map(v => v.route.customers);
+                              .map(v => v.route);
                               
         console.log('Cidades:', this.citiesResposnse);
         console.log('Itinerários:', this.itinerariesResponse);
