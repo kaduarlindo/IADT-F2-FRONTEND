@@ -1,15 +1,37 @@
 # ---- Build stage ----
-FROM node:20.15.1-alpine3.19 AS builder
+FROM node:20.13.1-alpine AS builder
+
+# Ambiente de DEV (instala também devDependencies como o @angular/cli)
+ENV NODE_ENV=development
 WORKDIR /app
+
+# Copiar package.json antes para aproveitar cache de dependências
 COPY package*.json ./
-RUN npm ci --omit=dev
+
+# Instalar dependências incluindo dev
+RUN npm ci
+
+# Copiar código-fonte
 COPY . .
-RUN npm run build -- --configuration production
+
+# Rodar o build (usa npx para garantir execução do binário local do Angular CLI)
+RUN npx ng build --configuration production
+
 
 # ---- Serve stage ----
-FROM nginx:1.27.2-alpine3.19
-RUN apk --no-cache upgrade
-COPY --from=builder /app/dist/tsp-map /usr/share/nginx/html
+FROM nginx:1.27-alpine
+
+WORKDIR /usr/share/nginx/html
+
+# Copiar artefatos do build
+COPY --from=builder /app/dist/tech-challenge ./
+
+# Substituir config default do nginx
 COPY nginx.conf /etc/nginx/conf.d/default.conf
+
 EXPOSE 80
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
+  CMD wget --spider -q http://localhost:80 || exit 1
+
 CMD ["nginx", "-g", "daemon off;"]
