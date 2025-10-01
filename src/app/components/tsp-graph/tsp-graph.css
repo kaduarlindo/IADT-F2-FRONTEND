@@ -1,0 +1,19 @@
+.legend-container {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+}
+.color-box {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  border: 1px solid #888;
+  display: inline-block;
+}

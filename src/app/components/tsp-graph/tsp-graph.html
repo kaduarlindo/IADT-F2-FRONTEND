@@ -1,2 +1,8 @@
 
 <canvas #canvas width="870" height="400" style="border:1px solid #ccc; border-radius:8px;"></canvas>
+<div class="legend-container">
+  <div *ngFor="let v of legendData" class="legend-item">
+    <span class="color-box" [style.background]="v.color"></span>
+    Veículo {{v.index}} — Distância: {{v.distance | number:'1.2-2'}} — Autonomia: {{v.autonomy}}
+  </div>
+</div>

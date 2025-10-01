@@ -6,7 +6,7 @@ import { CommonModule } from '@angular/common';
 import { City } from '../../models/city';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TspGraphComponent } from '../tsp-graph/tsp-graph';
-import { BestSolutionResponse } from '../../models/solution';
+import { BestSolutionResponse, Vehicle } from '../../models/solution';
 import { Route } from '../../models/solution';
 
 @Component({
@@ -23,7 +23,7 @@ export class TspComponent {
   spinnerVisible = false;
 
   citiesResposnse: City[] = [];
-  itinerariesResponse: Route[] = [];
+  itinerariesResponse: Vehicle[] = [];
 
   constructor(private fb: FormBuilder, private wsService: TspWebsocketService) {}
 
@@ -84,10 +84,8 @@ export class TspComponent {
                                               .map(city => [city.identifier, city])
                                           ).values()
                                         );
-                              
-        this.itinerariesResponse = this.routeResult.solution.vehicles
-                              .map(v => v.route);
-                              
+                this.itinerariesResponse = this.routeResult.solution.vehicles;              
+                               
         console.log('Cidades:', this.citiesResposnse);
         console.log('Itinerários:', this.itinerariesResponse);
         this.spinnerVisible = false;
