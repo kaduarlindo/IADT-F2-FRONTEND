@@ -7,7 +7,6 @@ import { City } from '../../models/city';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TspGraphComponent } from '../tsp-graph/tsp-graph';
 import { BestSolutionResponse, Vehicle } from '../../models/solution';
-import { Route } from '../../models/solution';
 
 @Component({
   selector: 'app-tsp-component',
@@ -54,7 +53,7 @@ export class TspComponent {
     this.cities.removeAt(index);
   }
 
-  sendForm() {
+ sendForm() {
     if (this.tspForm.valid) {
       this.spinnerVisible = true;
 
@@ -72,20 +71,35 @@ export class TspComponent {
       this.wsService.sendMessage(JSON.stringify(payload));
 
       this.wsSubscription = this.wsService.routeResult$.subscribe(result => {
-        this.routeResult = JSON.parse(result);
+        let parsed;
+        try {
+          parsed = JSON.parse(result);
+        } catch {
+          alert('Erro ao processar resposta do servidor.');
+          this.spinnerVisible = false;
+          return;
+        }
+
+        if (parsed.event === 'error') {
+          alert(parsed.message || 'Erro desconhecido do servidor.');
+          this.spinnerVisible = false;
+          return;
+        }
+
+        this.routeResult = parsed;
         this.citiesResposnse = Array.from(
-                                          new Map(
-                                            this.routeResult.solution.vehicles
-                                              .flatMap(v => v.route.coordinates.map(element => ({
-                                                identifier: element.id,
-                                                x: element.x,
-                                                y: element.y
-                                              } as City)))
-                                              .map(city => [city.identifier, city])
-                                          ).values()
-                                        );
-                this.itinerariesResponse = this.routeResult.solution.vehicles;              
-                               
+          new Map(
+            this.routeResult.solution.vehicles
+              .flatMap(v => v.route.coordinates.map(element => ({
+                identifier: element.id,
+                x: element.x,
+                y: element.y
+              } as City)))
+              .map(city => [city.identifier, city])
+          ).values()
+        );
+        this.itinerariesResponse = this.routeResult.solution.vehicles;
+
         console.log('Cidades:', this.citiesResposnse);
         console.log('Itinerários:', this.itinerariesResponse);
         this.spinnerVisible = false;
