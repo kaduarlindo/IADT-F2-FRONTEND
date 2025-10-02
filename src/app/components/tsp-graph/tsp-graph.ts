@@ -7,6 +7,7 @@ type LegendItem = {
   color: string;
   autonomy: number;
   distance: number;
+  capacity: number;
 };
 
 
@@ -37,7 +38,7 @@ export class TspGraphComponent implements AfterViewInit {
 
   drawGraph() {
     type Point2D = { x: number; y: number };
-    type Route2D = { color: string; points: Point2D[]; autonomy: number; distance: number };
+    type Route2D = { color: string; points: Point2D[]; autonomy: number; distance: number; capacity: number };
 
     const canvas = this.canvasRef?.nativeElement;
     if (!canvas || !this.cities?.length) return;
@@ -71,13 +72,15 @@ export class TspGraphComponent implements AfterViewInit {
       })),
       autonomy: vehicle.autonomy,
       distance: vehicle.route?.distance ?? 0,
+      capacity: vehicle.capacity,
     }));
 
     this.legendData = routes2d.map((r, i) => ({
       index: i + 1,
       color: r.color,
       autonomy: r.autonomy,
-      distance: r.distance
+      distance: r.distance,
+      capacity: r.capacity
     }));
 
     // ---------- helpers ----------

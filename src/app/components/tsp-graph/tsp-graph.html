@@ -3,6 +3,6 @@
 <div class="legend-container">
   <div *ngFor="let v of legendData" class="legend-item">
     <span class="color-box" [style.background]="v.color"></span>
-    Veículo {{v.index}} — Distância: {{v.distance | number:'1.2-2'}} — Autonomia: {{v.autonomy}}
+    Veículo {{v.index}} — Distância: {{v.distance | number:'1.2-2'}} — Autonomia: {{v.autonomy}} - Capacidade: {{v.capacity}} 
   </div>
 </div>
