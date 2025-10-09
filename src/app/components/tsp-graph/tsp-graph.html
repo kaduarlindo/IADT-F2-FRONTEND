@@ -1,8 +1,18 @@
-
 <canvas #canvas width="870" height="400" style="border:1px solid #ccc; border-radius:8px;"></canvas>
 <div class="legend-container">
   <div *ngFor="let v of legendData" class="legend-item">
     <span class="color-box" [style.background]="v.color"></span>
-    Veículo {{v.index}} — Distância: {{v.distance | number:'1.2-2'}} — Autonomia: {{v.autonomy}} - Capacidade: {{v.capacity}} 
+    <div>
+      <div><strong>Veículo {{v.index}}</strong> — Distância: {{v.distance | number:'1.2-2'}} — Autonomia: {{v.autonomy}}</div>
+      <div style="font-size:12px; color:#333; margin-top:4px;">
+        <!-- nomes das cidades percorridas -->
+        <span *ngIf="v.names?.length; else noNames">
+          {{ v.names.join(' → ') }}
+        </span>
+        <ng-template #noNames>
+          (Sem nomes)
+        </ng-template>
+      </div>
+    </div>
   </div>
 </div>

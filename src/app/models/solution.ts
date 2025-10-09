@@ -2,6 +2,7 @@ export interface Coordinate {
   id: number;
   x: string;
   y: string;
+  name: string;
 }
 
 export interface Route {
